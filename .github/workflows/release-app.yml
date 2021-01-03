@@ -82,6 +82,8 @@ jobs:
           ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
+          CSC_LINK: ${{secrets.APPLE_CERT_LINK}}
+          CSC_KEY_PASSWORD: ${{secrets.APPLE_APP_CERT_KEY_PASSWORD}}
       - name: build electron app
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -89,6 +91,8 @@ jobs:
           ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
+          CSC_LINK: ${{secrets.SECTIGO_CERT_LINK}}
+          CSC_KEY_PASSWORD: ${{secrets.SECTIGO_CERT_PASSWORD}}
       - name: build electron app
         if: matrix.os == 'windows-latest'
         run: |
@@ -96,6 +100,8 @@ jobs:
           ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
+          CSC_LINK: ${{secrets.SECTIGO_CERT_LINK}}
+          CSC_KEY_PASSWORD: ${{secrets.SECTIGO_CERT_PASSWORD}}
   update_electron_release:
     name: Update Release
     if: needs.create_release.outputs.needElectronBuild != 'true'
