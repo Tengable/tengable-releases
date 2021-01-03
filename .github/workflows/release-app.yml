@@ -97,7 +97,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           yarn build:app --publish=always
-          ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
           CSC_LINK: ${{secrets.SECTIGO_CERT_LINK}}
