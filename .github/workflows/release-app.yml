@@ -102,17 +102,3 @@ jobs:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
           CSC_LINK: ${{secrets.SECTIGO_CERT_LINK}}
           CSC_KEY_PASSWORD: ${{secrets.SECTIGO_CERT_PASSWORD}}
-  update_electron_release:
-    name: Update Release
-    if: needs.create_release.outputs.needElectronBuild != 'true'
-    runs-on: ubuntu-latest
-    needs: release-apps
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 0
-      - name: Push prod-electron
-        run: |
-          git push --force origin ${{github.ref}}:prod-electron
