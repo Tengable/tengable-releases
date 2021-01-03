@@ -1,0 +1,113 @@
+name: Release Apps
+on:
+  push:
+    # release is triggered by editing the release and making it no "pre-release"
+    branches: [master]
+jobs:
+  # multi stage release based on https://github.com/actions/upload-release-asset/issues/16
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.new_tag }}
+    steps:
+      - name: Set Branch Name
+        id: vars
+        run: echo ::set-output name=branch_name::${GITHUB_REF#refs/*/}
+      # Wait for previous action to complete.
+      - name: Wait for previous deploys to finish
+        uses: ericwooley/one-action-at-a-time@v1.0.0
+        id: wait-for-build
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workflowFile: .github/workflows/release-app.yml
+          # before is the last head before this push.
+          branch: ${{ steps.vars.outputs.branch_name }}
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Bump version and push tag
+        if: ${{ steps.needElectronBuild.outputs.needElectronBuild }} == 'true'
+        id: version
+        uses: ericwooley/github-tag-action@master
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+
+  release-apps:
+    if: needs.create_release.outputs.needElectronBuild == 'true'
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          # - windows-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: yarn install
+        run: bash -c "yarn install --frozen-lockfile"
+      - name: print version
+        run: echo ${{ needs.create_release.outputs.version }}
+      - name: bump-version
+        run: npm version ${{ needs.create_release.outputs.version }} --force --git-tag-version=false
+      - name: build osx electron app
+        if: matrix.os == 'macos-latest'
+        run: |
+          yarn build:app --publishPolicy=always
+          ls dist/executables
+        env:
+          GH_TOKEN: ${{secrets.GH_TOKEN}}
+      - name: build electron app
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          yarn build:app --publishPolicy=always
+          ls dist/executables
+        env:
+          GH_TOKEN: ${{secrets.GH_TOKEN}}
+      - name: build electron app
+        if: matrix.os == 'windows-latest'
+        run: |
+          yarn build:app --publishPolicy=always
+          ls dist/executables
+        env:
+          GH_TOKEN: ${{secrets.GH_TOKEN}}
+  update_electron_release:
+    name: Update Release
+    if: needs.create_release.outputs.needElectronBuild != 'true'
+    runs-on: ubuntu-latest
+    needs: release-apps
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+      - name: Push prod-electron
+        run: |
+          git push --force origin ${{github.ref}}:prod-electron
