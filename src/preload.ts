@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* global document,  location */
 import { ipcRenderer } from 'electron'
-import { defaultElectronSettings } from './ElectronSettings'
+import { defaultElectronSettings, IElectronSettings } from './ElectronSettings'
 let crtlDown = false
 const appBridge = {
   onAppExit: () => {
     ipcRenderer.send('app-exit')
   },
-  onSettingsUpdate: (settings) => {
+  onSettingsUpdate: (settings: IElectronSettings) => {
     window.appBridge.settings = settings
     ipcRenderer.send('update-settings', JSON.stringify(settings))
   },
@@ -73,7 +73,9 @@ if (document.readyState != 'loading') listenForEvents()
 else if (document.addEventListener)
   document.addEventListener('DOMContentLoaded', listenForEvents)
 // IE <= 8
-else
+else {
+  // @ts-ignore
   document.attachEvent('onreadystatechange', function () {
     if (document.readyState == 'complete') listenForEvents()
   })
+}
