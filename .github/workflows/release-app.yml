@@ -41,7 +41,6 @@ jobs:
           WITH_V: true
 
   release-apps:
-    if: needs.create_release.outputs.needElectronBuild == 'true'
     needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
