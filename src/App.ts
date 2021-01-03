@@ -15,9 +15,7 @@ export default class App {
   BrowserWindow!: typeof BrowserWindow
   tray: Tray | null = null
   idleMonitor!: IdleMonitor
-  // constructor() {
-  //   this.store.delete('settings')
-  // }
+
   onIdle = () => {
     console.log('send idle')
     this.mainWindow?.webContents.send('idle', true)
@@ -25,7 +23,9 @@ export default class App {
   onActive = () => {
     this.mainWindow?.webContents.send('idle', false)
   }
-  store = new Store()
+  store = new Store({
+    name: 'tengable-desktop-settings',
+  })
   private readonly toggleWindowVisibility = (): void => {
     if (this.mainWindow && !this.mainWindow.isVisible()) {
       this.mainWindow?.show()
@@ -275,7 +275,7 @@ export default class App {
     // Electron.BrowserWindow into this function
     // so this class has no dependencies. This
     // makes the code easier to write tests for
-
+    console.log('userData location', app.getPath('userData'))
     this.BrowserWindow = browserWindow
     this.application = app
     console.log('Tengable version: ', app.getVersion())
