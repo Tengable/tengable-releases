@@ -8,10 +8,10 @@
   "description": "Tengable: Distributed Company Culture",
   "scripts": {
     "make": "ts-node ./scripts/build.ts",
-    "build:app": "mkdir -p build && concurrently 'yarn build:ts' 'yarn copyAssets'&& node scripts/genPackageJson.js && yarn dist",
+    "build:app": "shx mkdir -p build && concurrently 'yarn build:ts' 'yarn copyAssets'&& node scripts/genPackageJson.js && yarn dist",
     "build:ts": "tsc",
     "dev": "NODE_ENV=development electron ./build/main.js",
-    "copyAssets": "cp -rf src/assets/ build/assets",
+    "copyAssets": "shx cp -rf src/assets/ build/assets",
     "watch": "concurrently 'npm-watch' 'tsc --watch'",
     "pack": "electron-builder --dir build",
     "dist": "electron-builder"
@@ -76,6 +76,7 @@
     "electron-builder": "^22.9.1",
     "npm-watch": "^0.7.0",
     "shelljs": "^0.8.4",
+    "shx": "^0.3.3",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
   },
