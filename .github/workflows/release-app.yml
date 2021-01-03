@@ -79,21 +79,21 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           yarn build:app --publish=always
-          ls dist/executables
+          ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
       - name: build electron app
         if: matrix.os == 'ubuntu-latest'
         run: |
           yarn build:app --publish=always
-          ls dist/executables
+          ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
       - name: build electron app
         if: matrix.os == 'windows-latest'
         run: |
           yarn build:app --publish=always
-          ls dist/executables
+          ls dist/
         env:
           GH_TOKEN: ${{secrets.GH_TOKEN}}
   update_electron_release:
