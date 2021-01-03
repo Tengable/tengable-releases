@@ -49,7 +49,11 @@
         "dmg",
         "zip"
       ],
-      "icon": "./build/assets/icon.png"
+      "icon": "./build/assets/icon.png",
+      "entitlements": "build/assets/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Please give us access to your microphone"
+      }
     },
     "win": {
       "target": [
