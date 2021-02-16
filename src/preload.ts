@@ -9,7 +9,7 @@ const appBridge = {
   },
   onSettingsUpdate: (settings: IElectronSettings) => {
     window.appBridge.settings = settings
-    ipcRenderer.send('update-settings', JSON.stringify(settings))
+    ipcRenderer.send('update-settings', JSON.stringify({ ...defaultElectronSettings, ...settings }))
   },
   settings: defaultElectronSettings,
 }
@@ -62,7 +62,7 @@ function listenForEvents() {
     window.spacesComs.setIdle(idle)
   })
   ipcRenderer.on('initial-settings', (event, settings) => {
-    window.appBridge.settings = settings
+    window.appBridge.settings = { ...defaultElectronSettings, ...settings }
   })
   ipcRenderer.send('listening-for-events')
 }
@@ -70,8 +70,7 @@ function listenForEvents() {
 // in case the document is already rendered
 if (document.readyState != 'loading') listenForEvents()
 // modern browsers
-else if (document.addEventListener)
-  document.addEventListener('DOMContentLoaded', listenForEvents)
+else if (document.addEventListener) document.addEventListener('DOMContentLoaded', listenForEvents)
 // IE <= 8
 else {
   // @ts-ignore

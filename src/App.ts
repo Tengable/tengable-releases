@@ -8,12 +8,8 @@ import initTray from './tray'
 import { environment } from './environment'
 import { IElectronSettings, defaultElectronSettings } from './ElectronSettings'
 import isNumber from 'lodash/isNumber'
-const desktopSettingsName = environment.production
-  ? 'tengable-desktop-settings'
-  : 'tengable-desktop-settings-dev'
-const windowSettingsName = environment.production
-  ? 'tengable-window-settings'
-  : 'tengable-window-settings-dev'
+const desktopSettingsName = environment.production ? 'tengable-desktop-settings' : 'tengable-desktop-settings-dev'
+const windowSettingsName = environment.production ? 'tengable-window-settings' : 'tengable-window-settings-dev'
 export default class App {
   // Keep a global reference of the window object, if you don't, the window will
   // be closed automatically when the JavaScript object is garbage collected.
@@ -22,7 +18,12 @@ export default class App {
   BrowserWindow!: typeof BrowserWindow
   tray: Tray | null = null
   idleMonitor!: IdleMonitor
-
+  settings: IElectronSettings
+  constructor() {
+    console.log('loading settings')
+    this.settings = this.loadSettings()
+    console.log('settings loaded', this.settings)
+  }
   onIdle = () => {
     console.log('send idle')
     this.mainWindow?.webContents.send('idle', true)
@@ -122,6 +123,7 @@ export default class App {
   }
 
   initMainWindow() {
+    this.settings = this.loadSettings()
     let options: Electron.BrowserWindowConstructorOptions = {
       title: 'Tengable',
       icon: join(__dirname, 'assets', 'icon.png'),
@@ -149,8 +151,7 @@ export default class App {
     // over ride random os placements or whatever
     let startupPositionerInterval = setInterval(() => {
       if (isNumber(x) && isNumber(y)) this.mainWindow?.setPosition(x, y)
-      if (isNumber(width) && isNumber(height))
-        this.mainWindow?.setSize(width, height, false)
+      if (isNumber(width) && isNumber(height)) this.mainWindow?.setSize(width, height, false)
     }, 50)
     setTimeout(() => {
       clearInterval(startupPositionerInterval)
@@ -167,8 +168,7 @@ export default class App {
         app.quit()
       })
       ipcMain.addListener('update-settings', this.updateSettings)
-      const settings = this.loadSettings()
-      this.applySettings(settings)
+      this.applySettings(this.settings)
     })
     this.mainWindow.on('close', (e) => {
       e.preventDefault()
@@ -222,15 +222,12 @@ export default class App {
         return defaultElectronSettings
       },
       catch: (e) => {
-        dialog.showErrorBox(
-          'Could not load settings, reverting to defaults',
-          e.toString()
-        )
+        dialog.showErrorBox('Could not load settings, reverting to defaults', e.toString())
         return defaultElectronSettings
       },
     })
     parsedSettings = { ...defaultElectronSettings, ...parsedSettings }
-
+    this.settings = parsedSettings
     this.mainWindow?.webContents.send('initial-settings', parsedSettings)
     return parsedSettings
   }
@@ -256,7 +253,6 @@ export default class App {
     const size = this.mainWindow?.getSize()
     this.windowStore.set('position', position)
     this.windowStore.set('size', size)
-    // done
   }
   applySettings = async (settings: IElectronSettings) => {
     console.log('applying settings', settings, typeof settings)
@@ -268,15 +264,10 @@ export default class App {
       app.setLoginItemSettings({
         openAtLogin: settings.autoStart,
         path: updateExe,
-        args: [
-          '--processStart',
-          `"${exeName}"`,
-          '--process-start-args',
-          `"--hidden"`,
-        ],
+        args: ['--processStart', `"${exeName}"`, '--process-start-args', `"--hidden"`],
       })
     } else {
-      console.log('ignoring autostart in development mode')
+      console.log('ignoring autostart in development mode...')
     }
     console.log('mouse monitor', settings.mouseIdleMute)
     this.idleMonitor.monitorMouseMovements = settings.mouseIdleMute
@@ -292,9 +283,9 @@ export default class App {
     this.mainWindow.loadURL(this.getLastUrl())
   }
   getLastUrl = (): string => {
-    const defaultUrl = this.application.isPackaged
-      ? `https://app.tengable.com/demo`
-      : `http://localhost:4200/demo`
+    console.log('get last url')
+    if (this.settings.useStaging) return 'https://staging.app.tengable.com/demo'
+    const defaultUrl = this.application.isPackaged ? `https://app.tengable.com/demo` : `http://localhost:4200/demo`
     let lastUrl = this.store.get('last-url')
     if (!!lastUrl && typeof lastUrl == 'string') return lastUrl
     return defaultUrl
