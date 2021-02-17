@@ -126,7 +126,7 @@ export default class App {
     let options: Electron.BrowserWindowConstructorOptions = {
       title: 'Tengable',
       icon: join(__dirname, 'assets', 'icon.png'),
-      frame: false,
+      frame: true,
       alwaysOnTop: false,
       webPreferences: {
         // TODO: switch to https://www.electronjs.org/docs/api/context-bridge
