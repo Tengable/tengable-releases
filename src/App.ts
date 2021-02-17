@@ -105,7 +105,6 @@ export default class App {
       onShowHide: this.toggleWindowVisibility,
       onQuit: this.sendShutdownSignal,
     })
-    this.tray.on('click', this.toggleWindowVisibility)
     this.idleMonitor = new IdleMonitor()
     this.idleMonitor.on(EventEnum.idle, this.onIdle)
     this.idleMonitor.on(EventEnum.active, this.onActive)
