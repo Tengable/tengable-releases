@@ -3,12 +3,12 @@ export interface IElectronSettings {
   useBeta: boolean
   mouseIdleTime: number
   mouseIdleMute: boolean
-  useStaging: boolean
+  useUrl: string
 }
 export const defaultElectronSettings: IElectronSettings = {
   autoStart: true,
   useBeta: false,
   mouseIdleTime: 5,
   mouseIdleMute: true,
-  useStaging: false,
+  useUrl: '',
 }

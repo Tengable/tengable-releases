@@ -212,6 +212,9 @@ export default class App {
     this.mainWindow.webContents.on('did-navigate-in-page', (e) =>
       this.setLastUrl(this.mainWindow?.webContents.getURL() || 'awd')
     )
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      this.mainWindow?.webContents.send('initial-settings', this.settings)
+    })
   }
   loadSettings = () => {
     let parsedSettings = tc({
@@ -227,6 +230,7 @@ export default class App {
     })
     parsedSettings = { ...defaultElectronSettings, ...parsedSettings }
     this.settings = parsedSettings
+
     this.mainWindow?.webContents.send('initial-settings', parsedSettings)
     return parsedSettings
   }
@@ -283,7 +287,7 @@ export default class App {
   }
   getLastUrl = (): string => {
     console.log('get last url')
-    if (this.settings.useStaging) return 'https://staging.app.tengable.com/demo'
+    if (this.settings.useUrl) return this.settings.useUrl
     const defaultUrl = this.application.isPackaged ? `https://app.tengable.com/demo` : `http://localhost:4200/demo`
     let lastUrl = this.store.get('last-url')
     if (!!lastUrl && typeof lastUrl == 'string') return lastUrl

@@ -10,6 +10,7 @@ const appBridge = {
   onSettingsUpdate: (settings: IElectronSettings) => {
     window.appBridge.settings = settings
     ipcRenderer.send('update-settings', JSON.stringify({ ...defaultElectronSettings, ...settings }))
+    window.appBridge.settings = { ...defaultElectronSettings, ...settings }
   },
   settings: defaultElectronSettings,
 }
@@ -62,6 +63,7 @@ function listenForEvents() {
     window.spacesComs.setIdle(idle)
   })
   ipcRenderer.on('initial-settings', (event, settings) => {
+    console.log('got initial settings', settings)
     window.appBridge.settings = { ...defaultElectronSettings, ...settings }
   })
   ipcRenderer.send('listening-for-events')
